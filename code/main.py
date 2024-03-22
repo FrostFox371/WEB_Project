@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 # Типа база данных, потом поменять на sql
 rooms = {
@@ -22,5 +22,5 @@ def book():
     else:
         return "Sorry, the selected room is not available."
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)
