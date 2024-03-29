@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
-
 db = SQLAlchemy(app)
 
 class Room(db.Model):
@@ -68,6 +67,39 @@ def book():
         return f"Room {room_id} has been booked successfully!"
     else:
         return "Sorry, the selected room is not available."
+
+# Обработчики ошибок
+@app.errorhandler(400)
+def bad_request_error(error):
+    return render_template('error.html', error_code=400, error_message="Bad Request"), 400
+
+@app.errorhandler(401)
+def unauthorized_error(error):
+    return render_template('error.html', error_code=401, error_message="Unauthorized"), 401
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('error.html', error_code=403, error_message="Forbidden"), 403
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', error_code=404, error_message="Page not found"), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', error_code=500, error_message="Internal Server Error"), 500
+
+@app.errorhandler(502)
+def bad_gateway_error(error):
+    return render_template('error.html', error_code=502, error_message="Bad Gateway"), 502
+
+@app.errorhandler(503)
+def service_unavailable_error(error):
+    return render_template('error.html', error_code=503, error_message="Service Unavailable"), 503
+
+@app.errorhandler(505)
+def http_version_not_supported_error(error):
+    return render_template('error.html', error_code=505, error_message="HTTP Version Not Supported"), 505
 
 if __name__ == '__main__':
     with app.app_context():
