@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
+
 db = SQLAlchemy(app)
 
 class Room(db.Model):
