@@ -47,7 +47,7 @@ def login():
             session['username'] = username
             return redirect(url_for('index'))
         else:
-            error = "Invalid username or password. Please try again."
+            error = "Неправильное имя или пароль. Повторите попытку."
     return render_template('login.html', error=error)
 
 @app.route('/logout')
@@ -64,9 +64,9 @@ def book():
     if room.available:
         room.available = False
         db.session.commit()
-        return f"Room {room_id} has been booked successfully!"
+        return f"Комната {room_id} была забронирована успешно!"
     else:
-        return "Sorry, the selected room is not available."
+        return "Извините, выбранная комната недоступна."
 
 # Обработчики ошибок
 @app.errorhandler(400)
