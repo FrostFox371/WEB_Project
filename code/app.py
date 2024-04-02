@@ -1,21 +1,19 @@
+# Импорт необходимых модулей и классов
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
+# Создание приложения Flask
+app = Flask(name)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rooms.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
-socketio = SocketIO(app)
 
-
+# Определение моделей базы данных
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     available = db.Column(db.Boolean, default=True)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,15 +21,15 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
+    is_admin = db.Column(db.Boolean, default=False)
 
-
+# Маршруты и функции представления
 @app.route('/')
 def index():
     if 'username' in session:
         rooms = Room.query.all()
         return render_template('index.html', rooms=rooms)
     return redirect(url_for('login'))
-
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -55,7 +53,6 @@ def profile():
         return render_template('profile.html', user=user)
     return redirect(url_for('login'))
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -69,7 +66,6 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -79,17 +75,18 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['username'] = username
-            return redirect(url_for('index'))
+            if user.is_admin:
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('index'))
         else:
             error = "Invalid username or password. Please try again."
     return render_template('login.html', error=error)
-
 
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
-
 
 @app.route('/book', methods=['POST'])
 def book():
@@ -103,46 +100,31 @@ def book():
         return f"Room {room_id} has been booked successfully!"
     else:
         return "Sorry, the selected room is not available."
-
-
 @app.route('/notifications')
 def notifications():
     # Логика для получения уведомлений из базы данных
     notifications = []  # Здесь должна быть логика для получения уведомлений
     return render_template('notifications.html', notifications=notifications)
 
-
 @app.route('/search')
 def search():
     return render_template('search.html')
-
 
 @app.route('/support_chat')
 def support_chat():
     return render_template('support_chat.html')
 
+@app.route('/apply_for_owner', methods=['GET', 'POST'])
+def apply_for_owner():
+    if request.method == 'POST':
+        # Обработка данных из формы и сохранение заявки в базу данных
+        return redirect(url_for('index'))  # Перенаправление на страницу после успешной подачи заявки
+    return render_template('apply_for_owner.html')
 
-@socketio.on('message')
-def handle_message(message):
-    print('received message: ' + message)
-    send({'user': session.get('username', 'Anonymous'), 'message': message}, broadcast=True)
-
-
-@app.route('/notifications')
-def notifications():
-    # Логика для получения уведомлений из базы данных
-    notifications = []  # Здесь должна быть логика для получения уведомлений
-    return render_template('notifications.html', notifications=notifications)
-
-
-@app.route('/search')
-def search():
-    return render_template('search.html')
-
-
-@app.route('/support_chat')
-def support_chat():
-    return render_template('support_chat.html')
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    # Логика для отображения заявок и их управления
+    return render_template('admin_dashboard.html')
 
 
 # Обработчики ошибок
